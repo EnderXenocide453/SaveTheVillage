@@ -4,45 +4,93 @@ using UnityEngine;
 
 public class VillageController : MonoBehaviour
 {
-    [SerializeField]
-    private Dictionary<ResourceType, Resource> resources;
-
-    [SerializeField]
-    private Dictionary<ResourceType, Timer> timers;
-}
-
-/// <summary>
-/// Класс ресурса. Хранит в себе название, иконку и количество
-/// </summary>
-[System.Serializable]
-public class Resource
-{
-    public string name = "|Нет имени|";
-    public Sprite icon;
-
-    private int _count;
+    #region Ресурсы
+    /// <summary>
+    /// Начальные ресурсы
+    /// </summary>
+    public ResoursePair[] initialResources;
 
     /// <summary>
-    /// Устанавливает количество равное count
+    /// Источники ресурсов
     /// </summary>
-    /// <param name="count">Количество ресурса</param>
-    public void SetCount(int count)
-    {
-        if (count < 0) {
-            _count = 0;
-            return;
-        }
+    [SerializeField]
+    private ResourceSource[] sources;
+    /// <summary>
+    /// Текущее количество ресурсов
+    /// </summary>
+    private Dictionary<ResourceType, int> _resources;
 
-        _count = count;
+    private int _freePeople;
+    #endregion
+
+    private void Start()
+    {
+        InitResources();
+        ConnectTimers();
+    }
+
+    public void AddEmployee(ResourceSource src)
+    {
+        if (_freePeople > 0)
+            _freePeople -= src.AddEmployee();
+    }
+
+    public void RemoveEmployee(ResourceSource src)
+    {
+        _freePeople -= src.RemoveEmployee();
     }
 
     /// <summary>
-    /// Возвращает количество ресурса
+    /// Инициализация словаря дохода ресурсов
     /// </summary>
-    /// <returns>Количество ресурса</returns>
-    public int GetCount()
+    private void InitResources()
     {
-        return _count;
+        _resources = new Dictionary<ResourceType, int>
+        {
+            { ResourceType.Food, 0 },
+            { ResourceType.Wood, 0 },
+            { ResourceType.Metal, 0 },
+            { ResourceType.People, 0 }
+        };
+
+        if (initialResources != null)
+            foreach (ResoursePair res in initialResources)
+                AddResource(res.type, res.amount);
+
+        _freePeople = _resources[ResourceType.People];
+    }
+
+    private void ConnectTimers()
+    {
+        foreach (ResourceSource src in sources) {
+            src.timer.onLoopEnds += () => AddResource(src.type, src.loopIncome);
+        }
+    }
+
+    private void AddResource(ResourceType type, int amount)
+    {
+        SetResource(type, _resources[type] + amount);
+    }
+
+    private void SetResource(ResourceType type, int amount)
+    {
+        //Проверка на наличие ресурса в словаре
+        if (!_resources.ContainsKey(type))
+            _resources.Add(type, 0);
+
+        if (amount < 0) {
+            _resources[type] = 0;
+            return;
+        }
+
+        _resources[type] = amount;
+    }
+
+    [System.Serializable]
+    public struct ResoursePair
+    {
+        public ResourceType type;
+        public int amount;
     }
 }
 
@@ -50,7 +98,6 @@ public enum ResourceType
 {
     Food,
     Wood,
-    Stone,
-    Metall,
+    Metal,
     People
 }

@@ -10,7 +10,7 @@ public class Timer : MonoBehaviour
 {
     #region События
     public delegate void TimerHandler();
-    public TimerHandler onLoopEnds;
+    public event TimerHandler onLoopEnds;
     #endregion
 
     #region UI элементы
@@ -21,33 +21,39 @@ public class Timer : MonoBehaviour
     #endregion
 
     #region Время
-    [SerializeField]
-    private float maxTime;
-
-    private float _curTime;
-    private bool _isPlaying;
+    public bool isPlaying { get; private set; }
+    
+    private float _loopTime = 1;
+    private float _curTime = 0;
     #endregion
+
+    [SerializeField]
+    private bool lookAtCamera = true;
 
     private void Update()
     {
-        if (_isPlaying)
-            UpdateTime();
+        if (isPlaying)
+            UpdateTimer();
+
+        if (lookAtCamera) {
+            transform.LookAt(Camera.main.transform);
+        }
     }
 
     /// <summary>
     /// Приостанавливает таймер
     /// </summary>
-    public void PauseTimer()
+    public void Pause()
     {
-        _isPlaying = false;
+        isPlaying = false;
     }
 
     /// <summary>
     /// Запускает таймер вновь
     /// </summary>
-    public void ResumeTimer()
+    public void Play()
     {
-        _isPlaying = true;
+        isPlaying = true;
     }
 
     /// <summary>
@@ -55,7 +61,7 @@ public class Timer : MonoBehaviour
     /// </summary>
     public void StopTimer()
     {
-        _isPlaying = false;
+        isPlaying = false;
         _curTime = 0;
         UpdateUI();
     }
@@ -66,7 +72,9 @@ public class Timer : MonoBehaviour
     /// <param name="time">Время заполнения таймера</param>
     public void SetTime(float time)
     {
-        maxTime = time;
+        //Сохранение прогресса производства
+        _curTime *= time / _loopTime;
+        _loopTime = time;
     }
 
     /// <summary>
@@ -74,22 +82,21 @@ public class Timer : MonoBehaviour
     /// </summary>
     /// <param name="resSprite">Спрайт ресурса</param>
     /// <param name="indSprite">Спрайт индикатора</param>
-    public void RedrawUI(Sprite resSprite, Sprite indSprite)
+    public void RedrawUI(Sprite resSprite)
     {
         resourseImage.sprite = resSprite;
-        indicator.sprite = indSprite;
     }
 
     /// <summary>
     /// Обновление таймера. Вызывается каждый кадр
     /// </summary>
-    private void UpdateTime()
+    private void UpdateTimer()
     {
         _curTime += Time.deltaTime;
-
-        if (_curTime >= maxTime) {
-            _curTime %= maxTime;
-            onLoopEnds.Invoke();
+        
+        if (_curTime >= _loopTime) {
+            _curTime %= _loopTime;
+            onLoopEnds?.Invoke();
         }
 
         UpdateUI();
@@ -100,6 +107,6 @@ public class Timer : MonoBehaviour
     /// </summary>
     private void UpdateUI()
     {
-        indicator.fillAmount = _curTime / maxTime;
+        indicator.fillAmount = _curTime / _loopTime;
     }
 }
