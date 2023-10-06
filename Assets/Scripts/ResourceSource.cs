@@ -9,10 +9,6 @@ public class ResourceSource : MonoBehaviour
 {
     #region Свойства источника
     /// <summary>
-    /// Тип производимого ресурса
-    /// </summary>
-    public ResourceType type;
-    /// <summary>
     /// Название источника
     /// </summary>
     public string sourceName = "|Нет имени|";
@@ -29,6 +25,10 @@ public class ResourceSource : MonoBehaviour
     /// Доход за один цикл производства
     /// </summary>
     public int loopIncome { get; private set; }
+    /// <summary>
+    /// Количество рабочих
+    /// </summary>
+    public int employeesCount { get; private set; }
 
     /// <summary>
     /// Доход от одного рабочего
@@ -42,11 +42,10 @@ public class ResourceSource : MonoBehaviour
     private float loopTime = 1;
     [SerializeField]
     private bool workWithoutEmployee = false;
-    /// <summary>
-    /// Количество рабочих
-    /// </summary>
-    private int _emloyeesCount;
     #endregion
+
+    public delegate void EmployeeHandler();
+    public event EmployeeHandler onEmployeesChanged;
 
     private void Start()
     {
@@ -66,10 +65,12 @@ public class ResourceSource : MonoBehaviour
     {
         count = Mathf.Clamp(count, 0, int.MaxValue);
         //Разница между новым и старым значениями количества рабочих
-        int delta = count - _emloyeesCount;
-        _emloyeesCount = count;
+        int delta = count - employeesCount;
+        employeesCount = count;
         
         RecalculateIncome();
+
+        onEmployeesChanged?.Invoke();
 
         return delta;
     }
@@ -81,7 +82,7 @@ public class ResourceSource : MonoBehaviour
     /// <returns>Разница между новым и старым количеством работников</returns>
     public int AddEmployee(int count = 1)
     {
-        return SetEmployees(_emloyeesCount + count);
+        return SetEmployees(employeesCount + count);
     }
 
     /// <summary>
@@ -91,7 +92,7 @@ public class ResourceSource : MonoBehaviour
     /// <returns>Разница между новым и старым количеством работников</returns>
     public int RemoveEmployee(int count = 1)
     {
-        return SetEmployees(_emloyeesCount - count);
+        return SetEmployees(employeesCount - count);
     }
 
     /// <summary>
@@ -104,11 +105,11 @@ public class ResourceSource : MonoBehaviour
             return;
         }
 
-        if (_emloyeesCount == 0)
+        if (employeesCount == 0)
             timer.Pause();
         else if (!timer.isPlaying)
             timer.Play();
 
-        loopIncome = _emloyeesCount * incomeModifier;
+        loopIncome = employeesCount * incomeModifier;
     }
 }

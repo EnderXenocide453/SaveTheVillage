@@ -35,9 +35,7 @@ public class Timer : MonoBehaviour
         if (isPlaying)
             UpdateTimer();
 
-        if (lookAtCamera) {
-            transform.LookAt(Camera.main.transform);
-        }
+        Animate();
     }
 
     /// <summary>
@@ -111,5 +109,14 @@ public class Timer : MonoBehaviour
     private void UpdateUI()
     {
         indicator.fillAmount = _curTime / _loopTime;
+    }
+
+    private void Animate()
+    {
+        transform.position += Vector3.up * Mathf.Sin(Time.realtimeSinceStartup) * 0.01f; ;
+
+        if (lookAtCamera) {
+            transform.LookAt(Camera.main.transform);
+        }
     }
 }
