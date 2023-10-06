@@ -72,8 +72,11 @@ public class Timer : MonoBehaviour
     /// <param name="time">Время заполнения таймера</param>
     public void SetTime(float time)
     {
-        //Сохранение прогресса производства
-        _curTime *= time / _loopTime;
+        //Таймер останавливается, если время равно 0
+        isPlaying = (time == 0);
+
+        //Сохранение прогресса производства с проверкой деления на ноль
+        _curTime *= _loopTime > 0 ? time / _loopTime : 0;
         _loopTime = time;
     }
 
