@@ -1,10 +1,10 @@
-using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ResourceInfo : MonoBehaviour
 {
     [SerializeField]
-    private TMP_Text amountText;
+    private Text amountText;
 
     public void SetAmount(int amount)
     {

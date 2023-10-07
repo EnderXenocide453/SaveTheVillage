@@ -28,7 +28,9 @@ public class Timer : MonoBehaviour
     #endregion
 
     [SerializeField]
-    private bool lookAtCamera = true;
+    private bool lookAtCamera = false;
+    [SerializeField]
+    private bool animate = false;
 
     private void Update()
     {
@@ -57,7 +59,7 @@ public class Timer : MonoBehaviour
     /// <summary>
     /// Останавливает таймер и сбрасывает время
     /// </summary>
-    public void StopTimer()
+    public void Stop()
     {
         isPlaying = false;
         _curTime = 0;
@@ -88,6 +90,11 @@ public class Timer : MonoBehaviour
         resourseImage.sprite = resSprite;
     }
 
+    public void ClearListeners()
+    {
+        onLoopEnds = null;
+    }
+
     /// <summary>
     /// Обновление таймера. Вызывается каждый кадр
     /// </summary>
@@ -113,7 +120,8 @@ public class Timer : MonoBehaviour
 
     private void Animate()
     {
-        transform.position += Vector3.up * Mathf.Sin(Time.realtimeSinceStartup) * 0.01f; ;
+        if (animate)
+            transform.position += Vector3.up * Mathf.Sin(Time.realtimeSinceStartup) * 0.01f; ;
 
         if (lookAtCamera) {
             transform.LookAt(Camera.main.transform);

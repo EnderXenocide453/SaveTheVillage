@@ -44,8 +44,8 @@ public class ResourceSource : MonoBehaviour
     private bool workWithoutEmployee = false;
     #endregion
 
-    public delegate void EmployeeHandler();
-    public event EmployeeHandler onEmployeesChanged;
+    public delegate void SourceHandler();
+    public event SourceHandler onEmployeesChanged;
 
     private void Start()
     {
