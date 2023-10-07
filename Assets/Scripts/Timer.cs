@@ -8,11 +8,6 @@ using UnityEngine.UI;
 /// </summary>
 public class Timer : MonoBehaviour
 {
-    #region События
-    public delegate void TimerHandler();
-    public event TimerHandler onLoopEnds;
-    #endregion
-
     #region UI элементы
     [SerializeField]
     private Image indicator;
@@ -22,9 +17,15 @@ public class Timer : MonoBehaviour
 
     #region Время
     public bool isPlaying { get; private set; }
+
+    public float loopTime { get; private set; } = 1;
     
-    private float _loopTime = 1;
     private float _curTime = 0;
+    #endregion
+
+    #region События
+    public delegate void TimerHandler();
+    public event TimerHandler onLoopEnds;
     #endregion
 
     [SerializeField]
@@ -73,11 +74,11 @@ public class Timer : MonoBehaviour
     public void SetTime(float time)
     {
         //Таймер останавливается, если время равно 0
-        isPlaying = (time == 0);
+        isPlaying = isPlaying && (time != 0);
 
         //Сохранение прогресса производства с проверкой деления на ноль
-        _curTime *= _loopTime > 0 ? time / _loopTime : 0;
-        _loopTime = time;
+        _curTime *= loopTime > 0 ? time / loopTime : 0;
+        loopTime = time;
     }
 
     /// <summary>
@@ -102,8 +103,8 @@ public class Timer : MonoBehaviour
     {
         _curTime += Time.deltaTime;
         
-        if (_curTime >= _loopTime) {
-            _curTime %= _loopTime;
+        if (_curTime >= loopTime) {
+            _curTime %= loopTime;
             onLoopEnds?.Invoke();
         }
 
@@ -115,7 +116,7 @@ public class Timer : MonoBehaviour
     /// </summary>
     private void UpdateUI()
     {
-        indicator.fillAmount = _curTime / _loopTime;
+        indicator.fillAmount = _curTime / loopTime;
     }
 
     private void Animate()
