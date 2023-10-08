@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class VillageController : MonoBehaviour
@@ -79,6 +80,13 @@ public class VillageController : MonoBehaviour
     private bool _updateSoldierButtons = true;
     #endregion
 
+    #region Музыка
+    [SerializeField]
+    private AudioClip idleClip, winClip, loseClip;
+
+    private AudioSource _audioSource;
+    #endregion
+
     [SerializeField]
     private Transform winPanel, losePanel;
     [SerializeField]
@@ -96,17 +104,12 @@ public class VillageController : MonoBehaviour
         InitTimers();
         InitSoldiers();
         InitEnemy();
+        InitMusic();
     }
 
     public void Restart()
     {
-        InitResources();
-        InitTimers();
-        InitSoldiers();
-        InitEnemy();
-
-        if (_paused)
-            ChangePause();
+        SceneManager.LoadScene(0);
     }
 
     public void Exit()
@@ -177,6 +180,8 @@ public class VillageController : MonoBehaviour
     {
         ChangePause();
         losePanel.gameObject.SetActive(true);
+
+        PLayMusic(loseClip);
     }
 
     #region Методы солдат
@@ -201,6 +206,8 @@ public class VillageController : MonoBehaviour
         soldier.minusBtn.onClick.AddListener(delegate () {
             RemoveSoldier(soldier);
         });
+
+        SetPeople(_people + soldier.GetCount());
     }
 
     private void RemoveSoldier(Soldier soldier)
@@ -213,7 +220,7 @@ public class VillageController : MonoBehaviour
     private void SetPeople(int count)
     {
         _people = count;
-        if (_people > peopleToWin)
+        if (_people >= peopleToWin)
             Win();
 
         peopleField.text = _people.ToString();
@@ -223,6 +230,8 @@ public class VillageController : MonoBehaviour
     {
         ChangePause();
         winPanel.gameObject.SetActive(true);
+
+        PLayMusic(winClip);
     }
 
     private void UpdateSoldiersInfo()
@@ -322,6 +331,7 @@ public class VillageController : MonoBehaviour
     private (float, float, float) NormilizeWeights(float x, float y, float z, float multiplier = 1)
     {
         Vector3 vector = new Vector3(x, y, z) / (x + y + z) * multiplier;
+
         return (vector.x, vector.y, vector.z);
     }
 
@@ -400,6 +410,20 @@ public class VillageController : MonoBehaviour
     }
     #endregion
 
+    #region Методы музыки
+    private void InitMusic()
+    {
+        _audioSource = GetComponent<AudioSource>();
+        PLayMusic(idleClip);
+    }
+
+    private void PLayMusic(AudioClip music)
+    {
+        _audioSource.clip = music;
+        _audioSource.Play();
+    }
+    #endregion
+
     #region методы рабочих
     private void AddEmployee(ResourceSource src)
     {
@@ -438,6 +462,7 @@ public class Resource
         UpdateUI();
 
         source.SetEmployees(0);
+        source.timer.ResetTimer();
         source.timer.onLoopEnds += () => AddResource(source.loopIncome);
         source.onEmployeesChanged += () => { employeeField.text = source.employeesCount.ToString(); };
     }
@@ -462,7 +487,7 @@ public class Resource
         UpdateUI();
         onAmountChanged?.Invoke();
 
-        return curAmount - amount;
+        return amount;
     }
 
     private void UpdateUI()

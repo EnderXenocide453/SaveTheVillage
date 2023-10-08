@@ -23,15 +23,27 @@ public class Timer : MonoBehaviour
     private float _curTime = 0;
     #endregion
 
+    #region Анимация
+    [SerializeField]
+    private bool lookAtCamera = false;
+    [SerializeField]
+    private bool animate = false;
+    #endregion
+
+    [SerializeField]
+    private AudioClip loopSound;
+    private AudioSource _audioSource;
+
     #region События
     public delegate void TimerHandler();
     public event TimerHandler onLoopEnds;
     #endregion
 
-    [SerializeField]
-    private bool lookAtCamera = false;
-    [SerializeField]
-    private bool animate = false;
+    private void Start()
+    {
+        _audioSource = GetComponent<AudioSource>();
+        _audioSource.clip = loopSound;
+    }
 
     private void Update()
     {
@@ -65,6 +77,18 @@ public class Timer : MonoBehaviour
         isPlaying = false;
         _curTime = 0;
         UpdateUI();
+    }
+
+    public void Restart()
+    {
+        Stop();
+        Play();
+    }
+
+    public void ResetTimer()
+    {
+        _curTime = 0;
+        ClearListeners();
     }
 
     /// <summary>
@@ -105,6 +129,7 @@ public class Timer : MonoBehaviour
         
         if (_curTime >= loopTime) {
             _curTime %= loopTime;
+            _audioSource.Play();
             onLoopEnds?.Invoke();
         }
 
